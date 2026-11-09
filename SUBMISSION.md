@@ -14,12 +14,10 @@ Catalog prerequisites are often written across long catalog pages with alternati
 
 Every plan retains catalog URLs and evidence excerpts. The contract checks that quoted excerpts occur in fetched source text and refuses to label unclear prerequisite sections as ready. CoursePath does not enroll students, verify transcripts, or replace academic advising; completed courses are user-reported and institutional exceptions require human review.
 
-## Evidence links to fill after deployment
+## Deployment references
 
-- Public source repository: **pending GitHub connection**
-- Live app: **pending publishing**
-- GenLayer Studionet contract: **paste deployed address**
-- Example `review_plan` transaction: **paste finalized transaction hash**
+- Add the public repository and live app URLs to the Project submission form.
+- Add the deployed GenLayer Studionet contract address and finalized example transaction hash after deployment.
 - Catalog example: University of Texas at Austin CS course catalog, `https://catalog.utexas.edu/courses/c_s/`
 
 ## Reviewer walkthrough
