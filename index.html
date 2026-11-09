@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f6fb" />
+    <meta name="description" content="Build a source-backed course sequence from official catalog prerequisites, checked through GenLayer consensus." />
+    <title>CoursePath — Catalog-backed planning</title>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar"><a class="brand" href="#top"><span class="brand-mark">C</span>coursepath</a><div class="top-actions"><span class="network"><i></i> GENLAYER STUDIONET</span><button class="button outline" id="connect">Connect wallet</button></div></header>
+      <main id="top">
+        <section class="hero"><div class="hero-copy"><div class="eyebrow">ACADEMIC PLANNING · OFFICIAL CATALOGS</div><h1>Know what<br /><em>comes next.</em></h1><p class="hero-lede">Turn catalog prerequisites into a course sequence you can inspect. GenLayer validators independently read each official course page, reconcile the requirements, and save the plan for your advising conversation.</p><div class="pills"><span>Catalog evidence</span><span>AND / OR requirements</span><span>Shared onchain history</span></div></div><div class="hero-art" aria-hidden="true"><div class="route route-a"></div><div class="route route-b"></div><div class="node node-one">01</div><div class="node node-two">02</div><div class="node node-three">03</div><div class="path-card"><small>RECOMMENDED SEQUENCE</small><b>Foundations → Core → Advanced</b><span>from catalog requirements</span></div></div></section>
+        <section class="workspace">
+          <div class="section-heading"><div><div class="eyebrow">CONSENSUS PLAN</div><h2>Add courses from one catalog</h2></div><button id="example" class="text-button">Load UT Austin example ↗</button></div>
+          <div class="notice"><b>Use official catalog pages</b><span>Enter courses you want to take and their catalog URLs. Add completed course codes separately. CoursePath checks prerequisites and builds a valid order; it does not enroll you or replace an advisor.</span></div>
+          <div class="card"><div id="courses" class="course-list"></div><button id="add-course" class="button outline add-button">＋ Add course</button><label class="completed-label">COMPLETED COURSE CODES <span>comma separated, e.g. CS101, MATH120</span><input id="completed" placeholder="CS101, MATH120" /></label><button id="plan" class="button primary">Check catalog requirements <span>→</span></button></div>
+          <div id="status" class="status" data-kind="info" aria-live="polite"><b id="status-title">Connect the deployed planner contract</b><span id="status-message">Deploy course_path_planner.py in GenLayer Studio, then paste its address below.</span><a id="tx-link" href="#" target="_blank" rel="noreferrer" hidden>View transaction ↗</a></div>
+          <div class="contract-bar"><div><div class="eyebrow">ONCHAIN PLAN HISTORY</div><b>Connect deployed contract</b></div><div><input id="contract-address" placeholder="0x contract address" spellcheck="false" /><button id="save-contract" class="button outline">Connect</button></div></div>
+          <div class="section-heading"><div><div class="eyebrow">SHARED HISTORY</div><h2>Recent plans <span id="count">0</span></h2></div><button id="refresh" class="icon-button" aria-label="Refresh plans">↻</button></div><div id="plans" class="plans"><div class="empty">No plans have been saved yet. Accepted consensus plans will appear here.</div></div>
+        </section>
+      </main>
+      <footer><span>CoursePath · A GenLayer application</span><a href="https://docs.genlayer.com/" target="_blank" rel="noreferrer">GenLayer documentation ↗</a></footer>
+      <aside class="disclaimer">Catalogs can change and may describe exceptions that are not captured by a short text extraction. Verify evidence with your institution before registering. Completed courses are user-reported.</aside>
+    </div><div id="toast" role="status"></div><script type="module" src="/src/main.js"></script>
+  </body>
+</html>

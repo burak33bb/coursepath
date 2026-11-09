@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.vercel/
+.env*
+!.env.example
+.pytest_cache/
+__pycache__/
