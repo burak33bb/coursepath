@@ -16,8 +16,10 @@ Every plan retains catalog URLs and evidence excerpts. The contract checks that 
 
 ## Deployment references
 
-- Add the public repository and live app URLs to the Project submission form.
-- Add the deployed GenLayer Studionet contract address and finalized example transaction hash after deployment.
+- Source repository: https://github.com/burak33bb/coursepath
+- Live app: https://burak33bb.github.io/coursepath/
+- Deployed GenLayer Studionet contract: add the address after deploying in Studio.
+- Finalized `review_plan` transaction: add its hash after the sample call.
 - Catalog example: University of Texas at Austin CS course catalog, `https://catalog.utexas.edu/courses/c_s/`
 
 ## Reviewer walkthrough

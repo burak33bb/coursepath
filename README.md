@@ -1,5 +1,8 @@
 # CoursePath
 
+**Live app:** https://burak33bb.github.io/coursepath/  
+**Source:** https://github.com/burak33bb/coursepath
+
 CoursePath turns official course catalog prerequisite statements into an inspectable course sequence. A learner supplies up to five desired courses, official catalog URLs, and completed course codes. GenLayer validators independently extract the prerequisite groups, reconcile the extracted catalog evidence, and the contract deterministically checks the selected dependency graph before saving an append-only plan.
 
 ## What makes the contract central
