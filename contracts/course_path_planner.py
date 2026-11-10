@@ -98,12 +98,34 @@ Return no Markdown or extra keys.
 def _parse_json(value: typing.Any) -> typing.Any:
     if not isinstance(value, str):
         return value
-    start, end = value.find("["), value.rfind("]")
-    if start < 0 or end < start:
-        start, end = value.find("{"), value.rfind("}")
-    if start < 0 or end < start:
+    start = next((index for index, char in enumerate(value) if char in "[{"), -1)
+    if start < 0:
         raise ValueError("Expected JSON input.")
-    return json.loads(value[start:end + 1])
+
+    matching = {"{": "}", "[": "]"}
+    stack = []
+    in_string = False
+    escaped = False
+    for index in range(start, len(value)):
+        char = value[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char in matching:
+            stack.append(matching[char])
+        elif char in "]}":
+            if not stack or stack.pop() != char:
+                raise ValueError("Malformed JSON input.")
+            if not stack:
+                return json.loads(value[start:index + 1])
+    raise ValueError("Incomplete JSON input.")
 
 
 def _parse_object(value: typing.Any) -> dict:
