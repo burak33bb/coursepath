@@ -75,24 +75,27 @@ async function submitPlan() {
   $("#plan").textContent = "Waiting for consensus…";
   setStatus("Confirm in your wallet", "GenLayer validators will read each official course page. Do not submit the same plan twice while it runs.", "pending");
   try {
+    const previousCount = Number(await reader.readContract({ address, functionName: "get_plan_count", args: [], stateStatus: "finalized" }));
+    if (!Number.isSafeInteger(previousCount) || previousCount < 0) throw new Error("Could not verify the current plan count.");
     const hash = await writer.writeContract({ address, functionName: "review_plan", args: [JSON.stringify(courses), JSON.stringify(completed)], value: BigInt(0) });
     const link = $("#tx-link");
     link.href = `${EXPLORER}/tx/${hash}`;
     link.hidden = false;
     link.textContent = `View ${hash.slice(0, 10)}… ↗`;
     setStatus("Consensus running", "Checking catalog evidence and prerequisite order.", "pending");
-    const accepted = await reader.waitForTransactionReceipt({ hash, status: TransactionStatus.ACCEPTED, interval: 3000, retries: 180, fullTransaction: false });
+    const accepted = await reader.waitForTransactionReceipt({ hash, status: TransactionStatus.ACCEPTED, interval: 3000, retries: 180, fullTransaction: true });
     assertSuccessful(accepted);
-    const finalReceipt = await reader.waitForTransactionReceipt({ hash, status: TransactionStatus.FINALIZED, interval: 3000, retries: 240, fullTransaction: false });
+    const finalReceipt = await reader.waitForTransactionReceipt({ hash, status: TransactionStatus.FINALIZED, interval: 3000, retries: 240, fullTransaction: true });
     assertSuccessful(finalReceipt);
+    const savedCount = await loadPlans("finalized", false);
+    if (savedCount !== previousCount + 1) throw new Error("The transaction finished, but the contract did not save a plan. Open the transaction and check Error Details.");
     setStatus("Plan finalized", "The catalog interpretation and sequence are saved in the shared contract registry.", "success");
-    await loadPlans("finalized", false);
   } catch (error) { setStatus("Plan not saved", readableError(error), "error"); notify("Check the transaction result and error details before retrying."); }
   finally { busy = false; $("#plan").disabled = false; $("#plan").innerHTML = 'Check catalog requirements <span>→</span>'; }
 }
 
 async function loadPlans(stateStatus = "finalized", announce = true) {
-  if (!address) return;
+  if (!address) return null;
   try {
     const count = Number(await reader.readContract({ address, functionName: "get_plan_count", args: [], stateStatus }));
     if (!Number.isSafeInteger(count) || count < 0) throw new Error("The contract returned an invalid plan count.");
@@ -101,7 +104,8 @@ async function loadPlans(stateStatus = "finalized", announce = true) {
     for (let id = count; id >= Math.max(1, count - 9); id -= 1) rows.push(parseValue(await reader.readContract({ address, functionName: "get_plan", args: [id], stateStatus })));
     renderPlans(rows.filter(Boolean));
     if (announce) setStatus("Planner ready", count === 0 ? "The shared CoursePath registry is connected. No plans have been saved yet." : `${count} shared plan${count === 1 ? "" : "s"} loaded from Studionet.`, "success");
-  } catch (error) { setStatus("Could not read plan history", `${readableError(error)} · check the address and network.`, "error"); }
+    return count;
+  } catch (error) { setStatus("Could not read plan history", `${readableError(error)} · check the address and network.`, "error"); return null; }
 }
 
 function renderPlans(plans) {
@@ -121,7 +125,16 @@ function renderPlans(plans) {
 function parseValue(value) { if (value && typeof value === "object" && !ArrayBuffer.isView(value)) return value; const raw = typeof value === "string" ? value : new TextDecoder().decode(value); return JSON.parse(raw); }
 function safeHref(value) { try { const url = new URL(value); return url.protocol === "https:" ? url.href : "#"; } catch { return "#"; } }
 function escapeHtml(value) { return String(value).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
-function assertSuccessful(receipt) { if (receipt?.txExecutionResultName && receipt.txExecutionResultName !== ExecutionResult.FINISHED_WITH_RETURN) throw new Error(`Contract execution: ${receipt.txExecutionResultName}`); }
+function assertSuccessful(receipt) {
+  const failed = receipt?.consensus_data?.leader_receipt?.find((item) => item.execution_result === "ERROR" || item.result?.status === "contract_error");
+  if (failed) {
+    const details = failed.genvm_result?.stderr || "";
+    if (details.includes("WEBPAGE_LOAD_FAILED")) throw new Error("A course catalog page could not be read by the validators. No plan was saved. Check the transaction details.");
+    const lastLine = details.trim().split("\n").filter(Boolean).at(-1);
+    throw new Error(lastLine || "Contract execution failed; no plan was saved.");
+  }
+  if (receipt?.txExecutionResultName && receipt.txExecutionResultName !== ExecutionResult.FINISHED_WITH_RETURN) throw new Error(`Contract execution: ${receipt.txExecutionResultName}`);
+}
 function setStatus(title, message, kind) { $("#status-title").textContent = title; $("#status-message").textContent = message; $("#status").dataset.kind = kind; }
 function readableError(error) { return String(error?.shortMessage || error?.message || "Request failed."); }
 function notify(message) { const toast = $("#toast"); toast.textContent = message; toast.classList.add("visible"); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove("visible"), 3800); }
