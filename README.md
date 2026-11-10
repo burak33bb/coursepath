@@ -22,7 +22,7 @@ npm run build
 npm run dev
 ```
 
-Open the Vite URL, connect a wallet on GenLayer Studionet, deploy `contracts/course_path_planner.py` in GenLayer Studio, paste the deployed address, and submit a plan. The **Load UT Austin example** button uses the official [Computer Science catalog](https://catalog.utexas.edu/courses/c_s/) page for CS 312 and CS 314, with M408C marked as completed. Confirm the current catalog text and completed-course assumption before submitting.
+Open the Vite URL. The hosted app is configured with its shared Studionet contract and loads plan history automatically. Connect a Studionet wallet to submit a plan. The **Load UT Austin example** button uses the official [Computer Science catalog](https://catalog.utexas.edu/courses/c_s/) page for CS 312 and CS 314, with M408C marked as completed. Confirm the current catalog text and completed-course assumption before submitting.
 
 ## Limitations
 

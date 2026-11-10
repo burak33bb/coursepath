@@ -1,7 +1,7 @@
 import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus, ExecutionResult } from "genlayer-js/types";
-import { CONTRACT_KEY, EXPLORER } from "./config.js";
+import { CONTRACT_ADDRESS, EXPLORER } from "./config.js";
 import { connect, shortAddress } from "./wallet.js";
 import "./styles.css";
 
@@ -9,24 +9,23 @@ const $ = (selector) => document.querySelector(selector);
 const reader = createClient({ chain: studionet });
 let writer = null;
 let account = "";
-let address = localStorage.getItem(CONTRACT_KEY) || "";
+const address = CONTRACT_ADDRESS;
 let busy = false;
 let toastTimer;
 
-$("#contract-address").value = address;
 $("#connect").addEventListener("click", connectWallet);
-$("#save-contract").addEventListener("click", saveContract);
 $("#add-course").addEventListener("click", () => addCourse());
 $("#example").addEventListener("click", loadExample);
 $("#plan").addEventListener("click", submitPlan);
-$("#refresh").addEventListener("click", () => loadPlans());
+$("#refresh").addEventListener("click", () => loadPlans("finalized", true));
 addCourse();
 if (window.ethereum) {
   window.ethereum.on?.("accountsChanged", (accounts) => setAccount(accounts[0] || ""));
   window.ethereum.on?.("chainChanged", () => location.reload());
   window.ethereum.request({ method: "eth_accounts" }).then((accounts) => setAccount(accounts[0] || "")).catch(() => {});
 }
-if (address) loadPlans();
+setStatus("Loading shared plan history", "Reading CoursePath's shared Studionet registry. A wallet is only needed to submit a plan.", "info");
+loadPlans();
 
 function addCourse(code = "", url = "") {
   if ($("#courses").children.length >= 5) return notify("A plan can contain up to five courses.");
@@ -61,15 +60,6 @@ function setAccount(value) {
   $("#connect").textContent = shortAddress(value);
 }
 
-function saveContract() {
-  const value = $("#contract-address").value.trim();
-  if (!/^0x[a-fA-F0-9]{40}$/.test(value)) return notify("Enter a valid 42-character contract address.");
-  address = value;
-  localStorage.setItem(CONTRACT_KEY, value);
-  setStatus("Planner connected", `${shortAddress(value)} · loading shared plan history`, "success");
-  loadPlans();
-}
-
 async function submitPlan() {
   if (busy) return;
   if (!address) return setStatus("Connect a contract first", "Paste the deployed CoursePath contract address below.", "error");
@@ -96,12 +86,12 @@ async function submitPlan() {
     const finalReceipt = await reader.waitForTransactionReceipt({ hash, status: TransactionStatus.FINALIZED, interval: 3000, retries: 240, fullTransaction: false });
     assertSuccessful(finalReceipt);
     setStatus("Plan finalized", "The catalog interpretation and sequence are saved in the shared contract registry.", "success");
-    await loadPlans();
+    await loadPlans("finalized", false);
   } catch (error) { setStatus("Plan not saved", readableError(error), "error"); notify("Check the transaction result and error details before retrying."); }
   finally { busy = false; $("#plan").disabled = false; $("#plan").innerHTML = 'Check catalog requirements <span>→</span>'; }
 }
 
-async function loadPlans(stateStatus = "finalized") {
+async function loadPlans(stateStatus = "finalized", announce = true) {
   if (!address) return;
   try {
     const count = Number(await reader.readContract({ address, functionName: "get_plan_count", args: [], stateStatus }));
@@ -110,6 +100,7 @@ async function loadPlans(stateStatus = "finalized") {
     const rows = [];
     for (let id = count; id >= Math.max(1, count - 9); id -= 1) rows.push(parseValue(await reader.readContract({ address, functionName: "get_plan", args: [id], stateStatus })));
     renderPlans(rows.filter(Boolean));
+    if (announce) setStatus("Planner ready", count === 0 ? "The shared CoursePath registry is connected. No plans have been saved yet." : `${count} shared plan${count === 1 ? "" : "s"} loaded from Studionet.`, "success");
   } catch (error) { setStatus("Could not read plan history", `${readableError(error)} · check the address and network.`, "error"); }
 }
 
