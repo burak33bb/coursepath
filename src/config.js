@@ -1,2 +1,2 @@
-export const CONTRACT_ADDRESS = "0x9181b3bBC5e7B3A7959B672cF93ab1f44BBC1e2A";
+export const CONTRACT_ADDRESS = "0x6e312052b26682D27cc7432c5487a90e4b773F1D";
 export const EXPLORER = "https://explorer-studio.genlayer.com";
